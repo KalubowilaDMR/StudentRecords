@@ -1,11 +1,9 @@
 import axios from 'axios';
 import React, { Component } from 'react';
 import {Link} from 'react-router-dom';
-
 import swal from 'sweetalert';
 
-
-class Addstudent extends Component {
+class Editstudent extends Component {
     state = {
         name : '',
         course : '',
@@ -20,27 +18,65 @@ class Addstudent extends Component {
         })
     }
 
-    saveStudent = async (e) => {
-        e.preventDefault();
-        
-        const res = await axios.post('http://127.0.0.1:8000/api/add-student', this.state);
+    async componentDidMount(){
+
+        const stud_id = this.props.match.params.id;
+        // console.log(stud_id);
+
+        const res = await axios.get(`http://127.0.0.1:8000/api/edit-student/${stud_id}`);
+        if(res.data.status === 200)
+        {
+            // console.log(res.data.student);
+
+            this.setState({
+                name : res.data.student.name,
+                course : res.data.student.course,
+                email : res.data.student.email,
+                phone : res.data.student.phone,
+            });
+           
+        }
+        else if(res.data.status === 404)
+        {
+            swal({
+                title: "Warning!.",
+                text: res.data.message,
+                icon: "warning",
+                button: "OK",
+            });
+            this.props.history.push('/');
+        }
+
+    }
+
+    updateStudent = async (e) => {
+        e.preventDefault();        
+
+        const stud_id = this.props.match.params.id;
+        // console.log(Stud_id);
+        const res = await axios.put(`http://127.0.0.1:8000/api/update-student/${stud_id}`, this.state);
+        // console.log(res.data.student);
         if(res.data.status === 200)
         {
             console.log(res.data.message);
 
             swal({
-                title: "Success!",
+                title: "Success",
                 text: res.data.message,
                 icon: "success",
                 button: "OK",
-              });
-            this.props.history.push('/');
-            this.setState({
-                name : '',
-                course : '',
-                email : '',
-                phone : '',
             });
+            this.props.history.push('/');
+        }
+        else if(res.data.status === 404)
+        {
+            swal({
+                title: "Warning!.",
+                text: res.data.message,
+                icon: "warning",
+                button: "OK",
+            });
+            this.props.history.push('/');
         }
         else
         {
@@ -59,12 +95,12 @@ class Addstudent extends Component {
                         <div className="card">
                             <div className="card-header">
                                 <h4>
-                                    Add Student
+                                    Edit Student
                                     <Link to={'/'} className="btn btn-primary btn-sm float-end">BACK</Link>
                                 </h4>
                             </div>
                             <div className="card-body">
-                                <form onSubmit={this.saveStudent}>
+                                <form onSubmit={this.updateStudent}>
                                     <div className="form-group mb-3">
                                         <label className="form-label" for="name">Student Name</label>
                                         <input type="text" onChange={this.handleInput} value={this.state.name} name="name" className="form-control" />
@@ -86,7 +122,7 @@ class Addstudent extends Component {
                                         <span className="text-danger" >{this.state.error_list.phone}</span>
                                     </div>
                                     <div className="form-group mb-3">                                        
-                                        <button type="submit" name="phone" className="btn btn-primary">Save Student</button>
+                                        <button type="submit" name="phone" className="btn btn-success" id="updateBtn">Update Student</button>
                                     </div>
 
                                 </form>
@@ -99,4 +135,4 @@ class Addstudent extends Component {
     }
 }
  
-export default Addstudent;
+export default Editstudent;
